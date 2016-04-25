@@ -1,0 +1,13 @@
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="GeneratorInterface/Core"/>
+<use name="DataFormats/JetReco"/>
+<use name="DataFormats/PatCandidates"/>
+<use name="CondFormats/JetMETObjects"/>
+<use name="JetMETCorrections/Objects"/>
+<use name="PhysicsTools/UtilAlgos"/>
+<use name="FWCore/ServiceRegistry"/>
+<use name="clhep"/>
+<use name="pythia6"/>
+<flags EDM_PLUGIN="1"/>

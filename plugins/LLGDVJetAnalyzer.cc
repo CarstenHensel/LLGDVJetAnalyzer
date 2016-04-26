@@ -89,7 +89,7 @@ class LLGDVJetAnalyzer : public edm::EDAnalyzer {
       virtual void endJob() override;
       
       edm::EDGetTokenT<pat::JetCollection> jetToken_;
-      edm::EDGetTokenT<pat::JetCollection> jetTokennoCHS_;
+      edm::EDGetTokenT<reco::PFJetCollection> jetTokennoCHS_;
       edm::EDGetTokenT<GenEventInfoProduct> genEvtInfoToken_;
       edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
       edm::EDGetTokenT<reco::VertexCompositePtrCandidateCollection> secVtxToken_;
@@ -117,6 +117,7 @@ class LLGDVJetAnalyzer : public edm::EDAnalyzer {
       std::vector<std::vector<double> >* jet_const_eta     = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jet_const_phi     = new std::vector<std::vector<double> >;
       std::vector<std::vector<int> >*    jet_const_charge  = new std::vector<std::vector<int> >;
+      std::vector<std::vector<int> >*    jet_const_fromPV  = new std::vector<std::vector<int> >;
       std::vector<std::vector<double> >* jet_const_pca0_x = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jet_const_pca0_y = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jet_const_pca0_z = new std::vector<std::vector<double> >;
@@ -140,6 +141,7 @@ class LLGDVJetAnalyzer : public edm::EDAnalyzer {
       std::vector<std::vector<double> >* jetnoCHS_const_eta     = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jetnoCHS_const_phi     = new std::vector<std::vector<double> >;
       std::vector<std::vector<int> >*    jetnoCHS_const_charge  = new std::vector<std::vector<int> >;
+      std::vector<std::vector<int> >*    jetnoCHS_const_fromPV  = new std::vector<std::vector<int> >;
       std::vector<std::vector<double> >* jetnoCHS_const_pca0_x = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jetnoCHS_const_pca0_y = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jetnoCHS_const_pca0_z = new std::vector<std::vector<double> >;
@@ -193,7 +195,7 @@ class LLGDVJetAnalyzer : public edm::EDAnalyzer {
 //
 LLGDVJetAnalyzer::LLGDVJetAnalyzer(const edm::ParameterSet& iConfig):
   jetToken_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"))),
-  jetTokennoCHS_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jetsnochs"))),
+  jetTokennoCHS_(consumes<reco::PFJetCollection>(iConfig.getParameter<edm::InputTag>("jetsnochs"))),
   genEvtInfoToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("GenEventInfo") )),
   vtxToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
   secVtxToken_(consumes<reco::VertexCompositePtrCandidateCollection>(iConfig.getParameter<edm::InputTag>("secVertices")))
@@ -217,8 +219,12 @@ LLGDVJetAnalyzer::LLGDVJetAnalyzer(const edm::ParameterSet& iConfig):
    tOutput -> Branch("RecoCHSJet_constVertex_x", &jet_constVertex_x );
    tOutput -> Branch("RecoCHSJet_constVertex_y", &jet_constVertex_y );
    tOutput -> Branch("RecoCHSJet_constVertex_z", &jet_constVertex_z );
+   tOutput -> Branch("RecoCHSJet_constVertexRef_x", &jet_constVertexRef_x );
+   tOutput -> Branch("RecoCHSJet_constVertexRef_y", &jet_constVertexRef_y );
+   tOutput -> Branch("RecoCHSJet_constVertexRef_z", &jet_constVertexRef_z );
    tOutput -> Branch("RecoCHSJet_const_pt", &jet_const_pt );
    tOutput -> Branch("RecoCHSJet_const_charge", &jet_const_charge );
+   tOutput -> Branch("RecoCHSJet_const_fromPV", &jet_const_fromPV );
    tOutput -> Branch("RecoCHSJet_const_pca0_x", &jet_const_pca0_x );
    tOutput -> Branch("RecoCHSJet_const_pca0_y", &jet_const_pca0_y );
    tOutput -> Branch("RecoCHSJet_const_pca0_z", &jet_const_pca0_z );
@@ -235,8 +241,12 @@ LLGDVJetAnalyzer::LLGDVJetAnalyzer(const edm::ParameterSet& iConfig):
    tOutput -> Branch("RecoNoCHSJet_constVertex_x", &jetnoCHS_constVertex_x );
    tOutput -> Branch("RecoNoCHSJet_constVertex_y", &jetnoCHS_constVertex_y );
    tOutput -> Branch("RecoNoCHSJet_constVertex_z", &jetnoCHS_constVertex_z );
+   tOutput -> Branch("RecoNoCHSJet_constVertexRef_x", &jetnoCHS_constVertexRef_x );
+   tOutput -> Branch("RecoNoCHSJet_constVertexRef_y", &jetnoCHS_constVertexRef_y );
+   tOutput -> Branch("RecoNoCHSJet_constVertexRef_z", &jetnoCHS_constVertexRef_z );
    tOutput -> Branch("RecoNoCHSJet_const_pt", &jetnoCHS_const_pt );
    tOutput -> Branch("RecoNoCHSJet_const_charge", &jetnoCHS_const_charge );
+   tOutput -> Branch("RecoNoCHSJet_const_fromPV", &jetnoCHS_const_fromPV );
    tOutput -> Branch("RecoNoCHSJet_const_pca0_x", &jetnoCHS_const_pca0_x );
    tOutput -> Branch("RecoNoCHSJet_const_pca0_y", &jetnoCHS_const_pca0_y );
    tOutput -> Branch("RecoNoCHSJet_const_pca0_z", &jetnoCHS_const_pca0_z );
@@ -305,10 +315,14 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
    jet_constVertex_x->clear();
    jet_constVertex_y->clear();
    jet_constVertex_z->clear();
+   jet_constVertexRef_x->clear();
+   jet_constVertexRef_y->clear();
+   jet_constVertexRef_z->clear();
    jet_const_pt->clear();
    jet_const_eta->clear();
    jet_const_phi->clear();
    jet_const_charge->clear();
+   jet_const_fromPV->clear();
    jet_const_pca0_x->clear();
    jet_const_pca0_y->clear();
    jet_const_pca0_z->clear();
@@ -322,10 +336,14 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
    jetnoCHS_constVertex_x->clear();
    jetnoCHS_constVertex_y->clear();
    jetnoCHS_constVertex_z->clear();
+   jetnoCHS_constVertexRef_x->clear();
+   jetnoCHS_constVertexRef_y->clear();
+   jetnoCHS_constVertexRef_z->clear();
    jetnoCHS_const_pt->clear();
    jetnoCHS_const_eta->clear();
    jetnoCHS_const_phi->clear();
    jetnoCHS_const_charge->clear();
+   jetnoCHS_const_fromPV->clear();
    jetnoCHS_const_pca0_x->clear();
    jetnoCHS_const_pca0_y->clear();
    jetnoCHS_const_pca0_z->clear();
@@ -370,7 +388,7 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
    Handle<pat::JetCollection> jets;
    iEvent.getByToken( jetToken_, jets );
    
-   Handle<pat::JetCollection> jetsnoCHS;
+   Handle<reco::PFJetCollection> jetsnoCHS;
    iEvent.getByToken( jetTokennoCHS_, jetsnoCHS );
    
    Handle<reco::VertexCollection> vertices;
@@ -428,10 +446,14 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      std::vector<double> constVert_x;
      std::vector<double> constVert_y;
      std::vector<double> constVert_z;
+     std::vector<double> constVertRef_x;
+     std::vector<double> constVertRef_y;
+     std::vector<double> constVertRef_z;
      std::vector<double> const_pt;
      std::vector<double> const_eta;
      std::vector<double> const_phi;
      std::vector<int> const_charge;
+     std::vector<int> const_fromPV;
      std::vector<double> const_pca0_x;
      std::vector<double> const_pca0_y;
      std::vector<double> const_pca0_z;
@@ -533,10 +555,14 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
         constVert_x.push_back( jetVertex_x );
         constVert_y.push_back( jetVertex_y );
         constVert_z.push_back( jetVertex_z );
+        constVertRef_x.push_back( dau.vertexRef().get()->position().x() );
+        constVertRef_y.push_back( dau.vertexRef().get()->position().y() );
+        constVertRef_z.push_back( dau.vertexRef().get()->position().z() );
         const_pt.push_back( dau.pt() );
         const_eta.push_back( dau.eta() );
         const_phi.push_back( dau.phi() );
         const_charge.push_back( dau.charge() );
+        const_fromPV.push_back( dau.fromPV() );
      }
 
      jet_pt->push_back( j.pt() );
@@ -546,6 +572,9 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      jet_constVertex_x->push_back( constVert_x ); 
      jet_constVertex_y->push_back( constVert_y ); 
      jet_constVertex_z->push_back( constVert_z ); 
+     jet_constVertexRef_x->push_back( constVertRef_x ); 
+     jet_constVertexRef_y->push_back( constVertRef_y ); 
+     jet_constVertexRef_z->push_back( constVertRef_z ); 
      jet_const_closestVertex_dxy->push_back(constVert_closestVertex_dxy);
      jet_const_closestVertex_dz->push_back(constVert_closestVertex_dz);
      jet_const_closestVertex_d->push_back(constVert_closestVertex_d);
@@ -553,13 +582,14 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      jet_const_eta->push_back( const_eta );
      jet_const_phi->push_back( const_phi );
      jet_const_charge->push_back( const_charge );
+     jet_const_fromPV->push_back( const_fromPV );
      jet_const_pca0_x->push_back( const_pca0_x );
      jet_const_pca0_y->push_back( const_pca0_y );
      jet_const_pca0_z->push_back( const_pca0_z );
       
    }
-   for( const pat::Jet &j : *jetsnoCHS ) {
-     
+   for( const reco::Jet &jr : *jetsnoCHS ) {
+     const pat::Jet j( jr );
      if( j.neutralHadronEnergyFraction() >= 0.90 ) continue;
      if( j.neutralEmEnergyFraction() >= 0.90 ) continue;
      if( j.numberOfDaughters() <= 1 ) continue;
@@ -580,10 +610,14 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      std::vector<double> constVert_x;
      std::vector<double> constVert_y;
      std::vector<double> constVert_z;
+     std::vector<double> constVertRef_x;
+     std::vector<double> constVertRef_y;
+     std::vector<double> constVertRef_z;
      std::vector<double> const_pt;
      std::vector<double> const_eta;
      std::vector<double> const_phi;
      std::vector<int> const_charge;
+     std::vector<int> const_fromPV;
      std::vector<double> const_pca0_x;
      std::vector<double> const_pca0_y;
      std::vector<double> const_pca0_z;
@@ -685,10 +719,14 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
         constVert_x.push_back( jetVertex_x );
         constVert_y.push_back( jetVertex_y );
         constVert_z.push_back( jetVertex_z );
+        constVertRef_x.push_back( dau.vertexRef().get()->position().x() );
+        constVertRef_y.push_back( dau.vertexRef().get()->position().y() );
+        constVertRef_z.push_back( dau.vertexRef().get()->position().z() );
         const_pt.push_back( dau.pt() );
         const_eta.push_back( dau.eta() );
         const_phi.push_back( dau.phi() );
         const_charge.push_back( dau.charge() );
+        const_fromPV.push_back( dau.fromPV() );
      }
 
      jetnoCHS_pt->push_back( j.pt() );
@@ -698,6 +736,9 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      jetnoCHS_constVertex_x->push_back( constVert_x ); 
      jetnoCHS_constVertex_y->push_back( constVert_y ); 
      jetnoCHS_constVertex_z->push_back( constVert_z ); 
+     jetnoCHS_constVertexRef_x->push_back( constVertRef_x ); 
+     jetnoCHS_constVertexRef_y->push_back( constVertRef_y ); 
+     jetnoCHS_constVertexRef_z->push_back( constVertRef_z ); 
      jetnoCHS_const_closestVertex_dxy->push_back(constVert_closestVertex_dxy);
      jetnoCHS_const_closestVertex_dz->push_back(constVert_closestVertex_dz);
      jetnoCHS_const_closestVertex_d->push_back(constVert_closestVertex_d);
@@ -705,6 +746,7 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      jetnoCHS_const_eta->push_back( const_eta );
      jetnoCHS_const_phi->push_back( const_phi );
      jetnoCHS_const_charge->push_back( const_charge );
+     jetnoCHS_const_fromPV->push_back( const_fromPV );
      jetnoCHS_const_pca0_x->push_back( const_pca0_x );
      jetnoCHS_const_pca0_y->push_back( const_pca0_y );
      jetnoCHS_const_pca0_z->push_back( const_pca0_z );

@@ -116,6 +116,8 @@ class LLGDVJetAnalyzer : public edm::EDAnalyzer {
       std::vector<std::vector<double> >* jet_const_pt      = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jet_const_eta     = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jet_const_phi     = new std::vector<std::vector<double> >;
+      std::vector<std::vector<double> >* jet_const_mass    = new std::vector<std::vector<double> >;
+      std::vector<std::vector<double> >* jet_const_energy  = new std::vector<std::vector<double> >;
       std::vector<std::vector<int> >*    jet_const_charge  = new std::vector<std::vector<int> >;
       std::vector<std::vector<int> >*    jet_const_fromPV  = new std::vector<std::vector<int> >;
       std::vector<std::vector<double> >* jet_const_pca0_x = new std::vector<std::vector<double> >;
@@ -140,6 +142,8 @@ class LLGDVJetAnalyzer : public edm::EDAnalyzer {
       std::vector<std::vector<double> >* jetnoCHS_const_pt      = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jetnoCHS_const_eta     = new std::vector<std::vector<double> >;
       std::vector<std::vector<double> >* jetnoCHS_const_phi     = new std::vector<std::vector<double> >;
+      std::vector<std::vector<double> >* jetnoCHS_const_mass    = new std::vector<std::vector<double> >;
+      std::vector<std::vector<double> >* jetnoCHS_const_energy  = new std::vector<std::vector<double> >;
       std::vector<std::vector<int> >*    jetnoCHS_const_charge  = new std::vector<std::vector<int> >;
       std::vector<std::vector<int> >*    jetnoCHS_const_fromPV  = new std::vector<std::vector<int> >;
       std::vector<std::vector<double> >* jetnoCHS_const_pca0_x = new std::vector<std::vector<double> >;
@@ -233,6 +237,8 @@ LLGDVJetAnalyzer::LLGDVJetAnalyzer(const edm::ParameterSet& iConfig):
    tOutput -> Branch("RecoCHSJet_const_closestVertex_d", &jet_const_closestVertex_d );
    tOutput -> Branch("RecoCHSJet_const_eta", &jet_const_eta );
    tOutput -> Branch("RecoCHSJet_const_phi", &jet_const_phi );
+   tOutput -> Branch("RecoCHSJet_const_mass", &jet_const_mass );
+   tOutput -> Branch("RecoCHSJet_const_energy", &jet_const_energy );
    
    tOutput -> Branch("RecoNoCHSJet_eta", &jetnoCHS_eta );
    tOutput -> Branch("RecoNoCHSJet_phi", &jetnoCHS_phi );
@@ -255,6 +261,8 @@ LLGDVJetAnalyzer::LLGDVJetAnalyzer(const edm::ParameterSet& iConfig):
    tOutput -> Branch("RecoNoCHSJet_const_closestVertex_d", &jetnoCHS_const_closestVertex_d );
    tOutput -> Branch("RecoNoCHSJet_const_eta", &jetnoCHS_const_eta );
    tOutput -> Branch("RecoNoCHSJet_const_phi", &jetnoCHS_const_phi );
+   tOutput -> Branch("RecoNoCHSJet_const_mass", &jetnoCHS_const_mass );
+   tOutput -> Branch("RecoNoCHSJet_const_energy", &jetnoCHS_const_energy );
     
     
 
@@ -321,6 +329,8 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
    jet_const_pt->clear();
    jet_const_eta->clear();
    jet_const_phi->clear();
+   jet_const_mass->clear();
+   jet_const_energy->clear();
    jet_const_charge->clear();
    jet_const_fromPV->clear();
    jet_const_pca0_x->clear();
@@ -342,6 +352,8 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
    jetnoCHS_const_pt->clear();
    jetnoCHS_const_eta->clear();
    jetnoCHS_const_phi->clear();
+   jetnoCHS_const_mass->clear();
+   jetnoCHS_const_energy->clear();
    jetnoCHS_const_charge->clear();
    jetnoCHS_const_fromPV->clear();
    jetnoCHS_const_pca0_x->clear();
@@ -450,6 +462,8 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      std::vector<double> constVertRef_y;
      std::vector<double> constVertRef_z;
      std::vector<double> const_pt;
+     std::vector<double> const_mass;
+     std::vector<double> const_energy;
      std::vector<double> const_eta;
      std::vector<double> const_phi;
      std::vector<int> const_charge;
@@ -561,6 +575,8 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
         const_pt.push_back( dau.pt() );
         const_eta.push_back( dau.eta() );
         const_phi.push_back( dau.phi() );
+        const_mass.push_back( dau.mass() );
+        const_energy.push_back( dau.energy() );
         const_charge.push_back( dau.charge() );
         const_fromPV.push_back( dau.fromPV() );
      }
@@ -581,6 +597,8 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      jet_const_pt->push_back( const_pt );
      jet_const_eta->push_back( const_eta );
      jet_const_phi->push_back( const_phi );
+     jet_const_mass->push_back( const_mass );
+     jet_const_energy->push_back( const_energy );
      jet_const_charge->push_back( const_charge );
      jet_const_fromPV->push_back( const_fromPV );
      jet_const_pca0_x->push_back( const_pca0_x );
@@ -616,6 +634,8 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      std::vector<double> const_pt;
      std::vector<double> const_eta;
      std::vector<double> const_phi;
+     std::vector<double> const_mass;
+     std::vector<double> const_energy;
      std::vector<int> const_charge;
      std::vector<int> const_fromPV;
      std::vector<double> const_pca0_x;
@@ -725,6 +745,8 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
         const_pt.push_back( dau.pt() );
         const_eta.push_back( dau.eta() );
         const_phi.push_back( dau.phi() );
+        const_mass.push_back( dau.mass() );
+        const_energy.push_back( dau.energy() );
         const_charge.push_back( dau.charge() );
         const_fromPV.push_back( dau.fromPV() );
      }
@@ -745,6 +767,8 @@ LLGDVJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
      jetnoCHS_const_pt->push_back( const_pt );
      jetnoCHS_const_eta->push_back( const_eta );
      jetnoCHS_const_phi->push_back( const_phi );
+     jetnoCHS_const_mass->push_back( const_mass );
+     jetnoCHS_const_energy->push_back( const_energy );
      jetnoCHS_const_charge->push_back( const_charge );
      jetnoCHS_const_fromPV->push_back( const_fromPV );
      jetnoCHS_const_pca0_x->push_back( const_pca0_x );
